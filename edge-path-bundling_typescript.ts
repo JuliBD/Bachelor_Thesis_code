@@ -47,10 +47,10 @@
       skip.forEach(edgeDict => {
         graph.dropEdge(edgeDict.edgeKey);
       })
-      const nodePath = dijkstra.bidirectional(graph, source, target, "weight");
+      const nodePath = dijkstra.bidirectional(graph, source, target, "weight"
       // restore edges dropped for skip
       skip.forEach(edgeDict => {
-        this.addEdgeFromSkip(edgeDict);
+        graph.addEdgeWithKey(edgeDict.edgeKey, edgeDict.source, edgeDict.target, edgeDict.attributes);
       })
 
       let path = null;
@@ -87,13 +87,7 @@
       graph.setEdgeAttribute(edgeKey, "bezeierControlPoints", vertices);
     });
 
-
     this.dropHelperEdges();
-  }
-
-  addEdgeFromSkip(edgeDict: {edgeKey: string, source: string, target: string, attributes: Attributes}): void {
-    const graph = this.renderer.getGraph();
-    graph.addEdgeWithKey(edgeDict.edgeKey, edgeDict.source, edgeDict.target, edgeDict.attributes);
   }
 
   pathLength(path: string[]): number {
