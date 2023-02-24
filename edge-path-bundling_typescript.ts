@@ -4,11 +4,15 @@
 
     const graph = this.renderer.getGraph();
     const edgeKeys = this.renderer.getGraph().edges();
-    const skip : {edgeKey: string, source: string, target: string, attributes: unknown}[] = [];
+    const skip : {edgeKey: string, source: string, target: string, attributes: Attributes}[] = [];
 
     edgeKeys.forEach(key => {
+      graph.setEdgeAttribute(key, "bezeierControlPoints", []);
       const edgeAttribs = graph.getEdgeAttributes(key);
 
+      graph.setEdgeAttribute(key, "skip", false);
+      graph.setEdgeAttribute(key, "lock", false);
+      
       // retriving & calculating necessary data
       const source = edgeAttribs.source;
       const target = edgeAttribs.target;
@@ -46,7 +50,7 @@
       const nodePath = dijkstra.bidirectional(graph, source, target, "weight");
       // restore edges dropped for skip
       skip.forEach(edgeDict => {
-        graph.addEdgeWithKey(edgeDict.edgeKey, edgeDict.source, edgeDict.target, edgeDict.attributes);
+        this.addEdgeFromSkip(edgeDict);
       })
 
       let path = null;
@@ -73,18 +77,23 @@
       const normalizationFunction = createNormalizationFunction(nodeExtent); 
 
       // get vertecies of path
-      const vertecies: number[]= [];
+      const vertices: number[]= [];
       nodePath.forEach(pathNode => {
         const norm_xy: Coordinates = { x: graph.getNodeAttribute(pathNode, "x"), y: graph.getNodeAttribute(pathNode, "y") };
         normalizationFunction.applyTo(norm_xy);
-        vertecies.push(norm_xy.x , norm_xy.y);
+        vertices.push(norm_xy.x , norm_xy.y);
       })
 
-      graph.setEdgeAttribute(edgeKey, "bezeierControlPoints", vertecies);
+      graph.setEdgeAttribute(edgeKey, "bezeierControlPoints", vertices);
     });
 
 
     this.dropHelperEdges();
+  }
+
+  addEdgeFromSkip(edgeDict: {edgeKey: string, source: string, target: string, attributes: Attributes}): void {
+    const graph = this.renderer.getGraph();
+    graph.addEdgeWithKey(edgeDict.edgeKey, edgeDict.source, edgeDict.target, edgeDict.attributes);
   }
 
   pathLength(path: string[]): number {
